@@ -46,7 +46,6 @@ def build_graph(puzzle):
     height = len(lines)
     return {node: [adjacent for adjacent in graph[node] if is_bounded(adjacent, width, height)] for node in graph if graph[node]}
 
-@profile
 def max_cycle_depth(graph, start):
     stack = [(start, [])]
     max_visited = []
