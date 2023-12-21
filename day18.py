@@ -11,48 +11,65 @@ def parse_puzzle_input(puzzle_input):
 OFFSETS = {
     'L': (-1, 0),
     'R': (1, 0),
-    'D': (0, -1),
-    'U': (0, 1)
+    'U': (0, -1),
+    'D': (0, 1)
 }
 
-def add(xs, ys):
-    return tuple(x + y for x, y in zip(xs, ys))
+def simple_segments(puzzle):
+    return [(direction, length) for direction, length, _ in puzzle]
 
-def find_loop(puzzle):
-    loop = set()
-    curr = (0, 0)
-    for direction, length, _ in puzzle:
-        for _ in range(length):
-            curr = add(curr, OFFSETS[direction])
-            loop.add(curr)
-    return loop
+def complex_segments(puzzle):
+    return [('RDLU'[int(colour[5])], int(colour[:5], 16)) for _, _, colour in puzzle]
+
+def simplify_segments(segments):
+    result = []
+    curr_length = 0
+    curr_direction = None
+    for direction, length in segments:
+        if direction != curr_direction:
+            if curr_length > 0:
+                result.append((curr_direction, curr_length))
+            curr_direction = direction
+            curr_length = length
+    if curr_length > 0:
+        result.append((curr_direction, curr_length))
+
+def is_clockwise(direction, next_direction):
+    return (direction + next_direction) in ['RD', 'DL', 'LU', 'UR']
+
+def find_vertices(segments):
+    vertices = []
+    x, y = (0.5, 0.5)
+    for i, (direction, length) in enumerate(segments):
+        next_direction, _ = segments[(i + 1) % len(segments)]
+        dx, dy = OFFSETS[direction]
+        ndx, ndy = OFFSETS[next_direction]
+        x += length * dx
+        y += length * dy
+        if is_clockwise(direction, next_direction):
+            vertices.append((round(x + 0.5*dx - 0.5*ndx), round(y + 0.5*dy - 0.5*ndy)))
+        else:
+            vertices.append((round(x - 0.5*dx + 0.5*ndx), round(y - 0.5*dy + 0.5*ndy)))
+
+    return vertices
+
+def polygon_area(vertices):
+    double_area = 0
+    for i in range(len(vertices)):
+        x1, y1 = vertices[i]
+        x2, y2 = vertices[(i + 1) % len(vertices)]
+        double_area += x1*y2 - y1*x2
+    return double_area // 2
 
 def solve_part1(puzzle):
-    loop = find_loop(puzzle)
-    xs, ys = zip(*loop)
-    x_min = min(xs)
-    x_max = max(xs)
-    y_min = min(ys)
-    y_max = max(ys)
-    visited = set()
-    stack = [(x_min - 1, y_min - 1)]
-    while stack:
-        curr = stack.pop()
-        if curr in loop:
-            continue
-        if curr[0] < x_min - 1 or curr[0] > x_max + 1 or curr[1] < y_min - 1 or curr[1] > y_max + 1:
-            continue
-
-        if curr in visited:
-            continue
-        visited.add(curr)
-        
-        for offset in OFFSETS.values():
-            stack.append(add(curr, offset))
-    return (3 + x_max - x_min) * (3 + y_max - y_min) - len(visited)
+    segments = simple_segments(puzzle)
+    vertices = find_vertices(segments)
+    return polygon_area(vertices)
 
 def solve_part2(puzzle):
-    pass
+    segments = complex_segments(puzzle)
+    vertices = find_vertices(segments)
+    return polygon_area(vertices)
 
 if __name__ == '__main__':
     with open(sys.argv[1]) as file:
@@ -60,4 +77,4 @@ if __name__ == '__main__':
 
     puzzle = parse_puzzle_input(puzzle_input)
     print('part1', solve_part1(puzzle))
-    #print('part2', solve_part2(puzzle))
+    print('part2', solve_part2(puzzle))
