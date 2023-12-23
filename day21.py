@@ -82,4 +82,3 @@ if __name__ == '__main__':
     puzzle = parse_puzzle_input(puzzle_input)
     print('part1', solve_part1(*puzzle))
     print('part2', solve_part2(*puzzle))
-
