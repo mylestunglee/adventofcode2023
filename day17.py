@@ -30,7 +30,6 @@ def traverse(grid, min_straight, max_straight):
 
     least_heat_loss = {}
     queue = []
-    visited = set()
     heapq.heappush(queue, (0, 0, (0, 0), tuple([DIRECTION_NONE] * max_straight)))
     target = (len(grid[0]) - 1, len(grid) - 1)
     while queue:
